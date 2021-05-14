@@ -3,7 +3,10 @@
 ## Installing All Modules
 
 - The entire modules can be installed following the instruction below.
-  Note that you may want to install body module only which has fewer dependencies. In this case, you may skip some steps. See below the details. 
+  Note that you may want to install body module only which has fewer dependencies. In this case, you may skip some steps. See below the details.
+  
+  Also note that the calculations can be performed on CPU thus CUDA installation is not obligatory.
+  Nevertheless, some renderers can demand on GPU so if you have no luck with one renderer, please, try another.
 
 - The basic installation
   ```
@@ -45,6 +48,7 @@
   - Run the following script
   ```
   sh scripts/install_frankmocap.sh
+  sh scripts/compile_hand_detectors.sh
   ```
 
 - Setting SMPL/SMPL-X Models

@@ -97,7 +97,6 @@ def run_regress(
 
 
 def run_frank_mocap(args, bbox_detector, body_mocap, hand_mocap, visualizer, use_cuda=True):
-
     for input_frame_and_metadata in demo.demo_common.input_frame_and_metadata_iterator(args):
         image_path = input_frame_and_metadata.image_path
         img_original_bgr = input_frame_and_metadata.img_original_bgr
