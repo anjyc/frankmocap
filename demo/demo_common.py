@@ -29,7 +29,7 @@ def input_frame_and_metadata_iterator(args):
         body_bbox_list = None
         image_path = None
 
-        if input_type =='image_dir':
+        if input_type in ['image', 'image_dir']:
             if cur_frame < len(input_data):
                 image_path = input_data[cur_frame]
                 img_original_bgr = cv2.imread(image_path)
@@ -138,6 +138,8 @@ def detect_hand_bbox_and_save_it_into_frame_and_metadata(args, input_frame_and_m
     if len(hand_bbox_list) < 1:
         print(f"No hand detected: {image_path}")
         return False
+    if body_bbox_list is not None:
+        assert len(hand_bbox_list) == len(body_bbox_list)
 
     input_frame_and_metadata.body_bbox_list = body_bbox_list
     input_frame_and_metadata.hand_bbox_list = hand_bbox_list

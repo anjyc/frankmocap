@@ -22,10 +22,13 @@ def run_hand_mocap(args, bbox_detector, hand_mocap, visualizer):
         hand_bbox_list = input_frame_and_metadata.hand_bbox_list
 
         # Hand Pose Regression
-        pred_output_list = hand_mocap.regress(
-                img_original_bgr, hand_bbox_list, add_margin=True)
-        assert len(hand_bbox_list) == len(body_bbox_list)
-        assert len(body_bbox_list) == len(pred_output_list)
+        pred_output_list = None
+        if hand_mocap is not None:
+            pred_output_list = hand_mocap.regress(
+                    img_original_bgr, hand_bbox_list, add_margin=True
+            )
+        if (body_bbox_list is not None) and (pred_output_list is not None):
+            assert len(body_bbox_list) == len(pred_output_list)
 
         demo.demo_common.show_and_save_result(
             args, 'hand', input_frame_and_metadata, visualizer, pred_output_list
@@ -37,13 +40,16 @@ def main():
     args.use_smplx = True
 
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
-    assert torch.cuda.is_available(), "Current version only supports GPU"
 
     #Set Bbox detector
-    bbox_detector =  HandBboxDetector(args.view_type, device)
+    bbox_detector = None
+    if args.crop_type != 'hand_crop':
+        bbox_detector = HandBboxDetector(args.view_type, device)
 
     # Set Mocap regressor
-    hand_mocap = HandMocap(args.checkpoint_hand, args.smpl_dir, device = device)
+    hand_mocap = None
+    if not args.skip_mocap:
+        hand_mocap = HandMocap(args.checkpoint_hand, args.smpl_dir, device=device)
 
     # Set Visualizer
     if args.renderer_type in ['pytorch3d', 'opendr']:

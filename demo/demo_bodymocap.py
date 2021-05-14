@@ -10,6 +10,7 @@ import mocap_utils.demo_utils as demo_utils
 import demo
 from demo.demo_options import DemoOptions
 
+
 def run_body_mocap(args, body_bbox_detector, body_mocap, visualizer):
     for input_frame_and_metadata in demo.demo_common.input_frame_and_metadata_iterator(args):
         image_path = input_frame_and_metadata.image_path
@@ -53,10 +54,10 @@ def main():
     args = DemoOptions().parse()
 
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
-    assert torch.cuda.is_available(), "Current version only supports GPU"
+    use_cuda = device.type == 'cuda'
 
     # Set bbox detector
-    body_bbox_detector = BodyPoseEstimator()
+    body_bbox_detector = BodyPoseEstimator(use_cuda=use_cuda)
 
     # Set mocap regressor
     use_smplx = args.use_smplx
