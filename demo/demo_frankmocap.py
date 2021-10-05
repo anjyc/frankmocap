@@ -209,6 +209,11 @@ def run_frank_mocap(args, bbox_detector, body_mocap, hand_mocap, visualizer):
             demo_type = 'frank'
             demo_utils.save_pred_to_pkl(
                 args, demo_type, image_path, body_bbox_list, hand_bbox_list, pred_output_list)
+        # save predictions to json
+        if args.save_pred_json:
+            demo_type = 'frank'
+            demo_utils.save_pred_to_json(
+                args, demo_type, image_path, body_bbox_list, hand_bbox_list, pred_output_list)
 
         print(f"Processed : {image_path}")
 

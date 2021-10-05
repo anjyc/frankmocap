@@ -297,6 +297,79 @@ def save_pred_to_pkl(
     print(f"Prediction saved: {pkl_path}")
  
 
+def save_pred_to_json(
+    args, demo_type, image_path, 
+    body_bbox_list, hand_bbox_list, pred_output_list):
+
+    smpl_type = 'smplx' if args.use_smplx else 'smpl'
+    assert demo_type in ['hand', 'body', 'frank']
+    if demo_type in ['hand', 'frank']:
+        assert smpl_type == 'smplx'
+
+    assert len(hand_bbox_list) == len(body_bbox_list)
+    assert len(body_bbox_list) == len(pred_output_list)
+
+    saved_data = dict()
+    # demo type / smpl type / image / bbox
+    saved_data = OrderedDict()
+    saved_data['demo_type'] = demo_type
+    saved_data['smpl_type'] = smpl_type
+    # saved_data['image_path'] = osp.abspath(image_path)
+    saved_data['body_bbox_list'] = body_bbox_list
+    saved_data['hand_bbox_list'] = hand_bbox_list
+    saved_data['save_mesh'] = args.save_mesh
+
+    saved_data['pred_output_list'] = list()
+    num_subject = len(hand_bbox_list)
+    for s_id in range(num_subject):
+        # predict params
+        pred_output = pred_output_list[s_id]
+        if pred_output is None:
+            saved_pred_output = None
+        else:
+            saved_pred_output = dict()
+            if demo_type == 'hand':
+                for hand_type in ['left_hand', 'right_hand']:
+                    pred_hand = pred_output[hand_type]
+                    saved_pred_output[hand_type] = dict()
+                    saved_data_hand = saved_pred_output[hand_type]
+                    if pred_hand is None:
+                        saved_data_hand = None
+                    else:
+                        for pred_key in pred_hand:
+                            if pred_key.find("vertices")<0 or pred_key == 'faces' :
+                                saved_data_hand[pred_key] = pred_hand[pred_key]
+                            else:
+                                if args.save_mesh:
+                                    if pred_key != 'faces':
+                                        saved_data_hand[pred_key] = \
+                                            pred_hand[pred_key].astype(np.float16)
+                                    else:
+                                        saved_data_hand[pred_key] = pred_hand[pred_key]
+            else:
+                for pred_key in pred_output:
+                    if pred_key.find("vertices")<0 or pred_key == 'faces' :
+                        saved_pred_output[pred_key] = pred_output[pred_key]
+                    else:
+                        if args.save_mesh:
+                            if pred_key != 'faces':
+                                saved_pred_output[pred_key] = \
+                                    pred_output[pred_key].astype(np.float16)
+                            else:
+                                saved_pred_output[pred_key] = pred_output[pred_key]
+
+        saved_data['pred_output_list'].append(saved_pred_output)
+
+    # write data to pkl
+    img_name = osp.basename(image_path)
+    record = img_name.split('.')
+    json_name = f"{'.'.join(record[:-1])}_prediction_result.json"
+    json_path = osp.join(args.out_dir, 'mocap', json_name)
+    gnu.make_subdir(json_path)
+    gnu.save_json(json_path, saved_data)
+    print(f"Prediction saved: {json_path}")
+
+
 def save_res_img(out_dir, image_path, res_img):
     out_dir = osp.join(out_dir, "rendered")
     img_name = osp.basename(image_path)
