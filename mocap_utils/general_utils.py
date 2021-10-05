@@ -133,6 +133,15 @@ def load_json(in_file):
         all_data = json.load(in_f)
         return all_data
 
+def convert(x):
+    if hasattr(x, "tolist"):  # numpy arrays have this
+        return x.tolist()
+    print("Type error:", x)
+
+def save_json_with_ndarray(out_file, data):
+    assert out_file.endswith(".json")
+    with open(out_file, "w") as out_f:
+        json.dump(data, out_f, default=convert)
 
 def save_json(out_file, data):
     assert out_file.endswith(".json")

@@ -324,17 +324,21 @@ def save_pred_to_json(
     saved_data['smpl_type'] = smpl_type
     # saved_data['image_path'] = osp.abspath(image_path)
     if isinstance(body_bbox_list, np.ndarray):
-        body_bbox_list = json.dumps(body_bbox_list, cls=NumpyArrayEncoder)
+        body_bbox_list = body_bbox_list.tolist()
+        # body_bbox_list = json.dumps(body_bbox_list, cls=NumpyArrayEncoder)
     saved_data['body_bbox_list'] = body_bbox_list
     if isinstance(hand_bbox_list, np.ndarray):
-        hand_bbox_list = json.dumps(hand_bbox_list, cls=NumpyArrayEncoder)
+        hand_bbox_list = hand_bbox_list.tolist()
+        # hand_bbox_list = json.dumps(hand_bbox_list, cls=NumpyArrayEncoder)
     saved_data['hand_bbox_list'] = hand_bbox_list
     saved_data['save_mesh'] = args.save_mesh
     
-    saved_data['pred_output_list'] = list()
+    saved_data['pred_output_list'] = []
     num_subject = len(hand_bbox_list)
     for s_id in range(num_subject):
         # predict params
+        if isinstance(pred_output_list[s_id], np.ndarray):
+            pred_output_list[s_id] = pred_output_list[s_id].tolist()
         pred_output = pred_output_list[s_id]
         if pred_output is None:
             saved_pred_output = None
@@ -342,6 +346,8 @@ def save_pred_to_json(
             saved_pred_output = dict()
             if demo_type == 'hand':
                 for hand_type in ['left_hand', 'right_hand']:
+                    if isinstance(pred_output[hand_type], np.ndarray):
+                        pred_output[hand_type] = pred_output[hand_type].tolist()
                     pred_hand = pred_output[hand_type]
                     saved_pred_output[hand_type] = dict()
                     saved_data_hand = saved_pred_output[hand_type]
@@ -351,35 +357,41 @@ def save_pred_to_json(
                         for pred_key in pred_hand:
                             if pred_key.find("vertices")<0 or pred_key == 'faces' :
                                 if isinstance(pred_hand[pred_key], np.ndarray):
-                                    pred_hand[pred_key] = json.dumps(pred_hand[pred_key], cls=NumpyArrayEncoder)
+                                    pred_hand[pred_key] = pred_hand[pred_key].tolist()
+                                    # pred_hand[pred_key] = json.dumps(pred_hand[pred_key], cls=NumpyArrayEncoder)
                                 saved_data_hand[pred_key] = pred_hand[pred_key]
                             else:
                                 if args.save_mesh:
                                     if pred_key != 'faces':
                                         if isinstance(pred_hand[pred_key], np.ndarray):
-                                            pred_hand[pred_key] = json.dumps(pred_hand[pred_key].astype(np.float16), cls=NumpyArrayEncoder)
+                                            pred_hand[pred_key] = pred_hand[pred_key].astype(np.float16).tolist()
+                                            # pred_hand[pred_key] = json.dumps(pred_hand[pred_key].astype(np.float16), cls=NumpyArrayEncoder)
                                         saved_data_hand[pred_key] = \
                                             pred_hand[pred_key]
                                     else:
                                         if isinstance(pred_hand[pred_key], np.ndarray):
-                                            pred_hand[pred_key] = json.dumps(pred_hand[pred_key], cls=NumpyArrayEncoder)
+                                            pred_hand[pred_key] = pred_hand[pred_key].tolist()
+                                            # pred_hand[pred_key] = json.dumps(pred_hand[pred_key], cls=NumpyArrayEncoder)
                                         saved_data_hand[pred_key] = pred_hand[pred_key]
             else:
                 for pred_key in pred_output:
                     if pred_key.find("vertices")<0 or pred_key == 'faces' :
                         if isinstance(pred_output[pred_key], np.ndarray):
-                            pred_output[pred_key] = json.dumps(pred_output[pred_key], cls=NumpyArrayEncoder)
+                            pred_output[pred_key] = pred_output[pred_key].tolist()
+                            # pred_output[pred_key] = json.dumps(pred_output[pred_key], cls=NumpyArrayEncoder)
                         saved_pred_output[pred_key] = pred_output[pred_key]
                     else:
                         if args.save_mesh:
                             if pred_key != 'faces':
                                 if isinstance(pred_output[pred_key], np.ndarray):
-                                    pred_output[pred_key] = json.dumps(pred_output[pred_key].astype(np.float16), cls=NumpyArrayEncoder)
+                                    pred_output[pred_key] = pred_output[pred_key].astype(np.float16).tolist()
+                                    # pred_output[pred_key] = json.dumps(pred_output[pred_key].astype(np.float16), cls=NumpyArrayEncoder)
                                 saved_pred_output[pred_key] = \
                                     pred_output[pred_key]
                             else:
                                 if isinstance(pred_output[pred_key], np.ndarray):
-                                    pred_output[pred_key] = json.dumps(pred_output[pred_key], cls=NumpyArrayEncoder)
+                                    pred_output[pred_key] = pred_output[pred_key].tolist()
+                                    # pred_output[pred_key] = json.dumps(pred_output[pred_key], cls=NumpyArrayEncoder)
                                 saved_pred_output[pred_key] = pred_output[pred_key]
 
         saved_data['pred_output_list'].append(saved_pred_output)
@@ -390,7 +402,7 @@ def save_pred_to_json(
     json_name = f"{'.'.join(record[:-1])}_prediction_result.json"
     json_path = osp.join(args.out_dir, 'mocap', json_name)
     gnu.make_subdir(json_path)
-    gnu.save_json(json_path, saved_data)
+    gnu.save_json_with_ndarray(json_path, saved_data)
     print(f"Prediction saved: {json_path}")
 
 
