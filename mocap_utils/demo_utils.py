@@ -8,7 +8,14 @@ import mocap_utils.general_utils as gnu
 import numpy as np
 import json
 import subprocess as sp
+from json import JSONEncoder
 
+
+class NumpyArrayEncoder(JSONEncoder):
+            def default(self, obj):
+                if isinstance(obj, np.ndarray):
+                    return obj.tolist()
+                return JSONEncoder.default(self, obj)
 
 def setup_render_out(out_dir):
     if out_dir is not None:
@@ -44,6 +51,7 @@ def __get_input_type(args):
         file_list = os.listdir(args.input_path)
         assert len(file_list) >0, f"{args.input_path} is a blank folder"
         extension = osp.splitext(file_list[0])[1][1:]
+        print()
         if extension == 'json':
             input_type ='bbox_dir'
         else:
@@ -213,7 +221,7 @@ def save_info_to_json(args, image_path, body_bbox_list, hand_bbox_list):
                     saved_hand_bbox[hand_type] = bbox.tolist()
             saved_hand_bbox_list.append(saved_hand_bbox)
     saved_data['hand_bbox_list'] = saved_hand_bbox_list
-
+    
     # write data to json
     img_name = osp.basename(image_path)
     record = img_name.split('.')
@@ -312,13 +320,18 @@ def save_pred_to_json(
     saved_data = dict()
     # demo type / smpl type / image / bbox
     saved_data = OrderedDict()
+    json.dumps(, cls=NumpyArrayEncoder)
     saved_data['demo_type'] = demo_type
     saved_data['smpl_type'] = smpl_type
     # saved_data['image_path'] = osp.abspath(image_path)
+    if isinstance(body_bbox_list, np.ndarray):
+        body_bbox_list = json.dumps(body_bbox_list, cls=NumpyArrayEncoder)
     saved_data['body_bbox_list'] = body_bbox_list
+    if isinstance(hand_bbox_list, np.ndarray):
+        hand_bbox_list = json.dumps(hand_bbox_list, cls=NumpyArrayEncoder)
     saved_data['hand_bbox_list'] = hand_bbox_list
     saved_data['save_mesh'] = args.save_mesh
-
+    
     saved_data['pred_output_list'] = list()
     num_subject = len(hand_bbox_list)
     for s_id in range(num_subject):
@@ -338,24 +351,36 @@ def save_pred_to_json(
                     else:
                         for pred_key in pred_hand:
                             if pred_key.find("vertices")<0 or pred_key == 'faces' :
+                                if isinstance(pred_hand[pred_key], np.ndarray):
+                                    pred_hand[pred_key] = json.dumps(pred_hand[pred_key], cls=NumpyArrayEncoder)
                                 saved_data_hand[pred_key] = pred_hand[pred_key]
                             else:
                                 if args.save_mesh:
                                     if pred_key != 'faces':
+                                        if isinstance(pred_hand[pred_key], np.ndarray):
+                                            pred_hand[pred_key] = json.dumps(pred_hand[pred_key].astype(np.float16), cls=NumpyArrayEncoder)
                                         saved_data_hand[pred_key] = \
-                                            pred_hand[pred_key].astype(np.float16)
+                                            pred_hand[pred_key]
                                     else:
+                                        if isinstance(pred_hand[pred_key], np.ndarray):
+                                            pred_hand[pred_key] = json.dumps(pred_hand[pred_key], cls=NumpyArrayEncoder)
                                         saved_data_hand[pred_key] = pred_hand[pred_key]
             else:
                 for pred_key in pred_output:
                     if pred_key.find("vertices")<0 or pred_key == 'faces' :
+                        if isinstance(pred_output[pred_key], np.ndarray):
+                            pred_output[pred_key] = json.dumps(pred_output[pred_key], cls=NumpyArrayEncoder)
                         saved_pred_output[pred_key] = pred_output[pred_key]
                     else:
                         if args.save_mesh:
                             if pred_key != 'faces':
+                                if isinstance(pred_output[pred_key], np.ndarray):
+                                    pred_output[pred_key] = json.dumps(pred_output[pred_key].astype(np.float16), cls=NumpyArrayEncoder)
                                 saved_pred_output[pred_key] = \
-                                    pred_output[pred_key].astype(np.float16)
+                                    pred_output[pred_key]
                             else:
+                                if isinstance(pred_output[pred_key], np.ndarray):
+                                    pred_output[pred_key] = json.dumps(pred_output[pred_key], cls=NumpyArrayEncoder)
                                 saved_pred_output[pred_key] = pred_output[pred_key]
 
         saved_data['pred_output_list'].append(saved_pred_output)
