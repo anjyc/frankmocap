@@ -320,7 +320,6 @@ def save_pred_to_json(
     saved_data = dict()
     # demo type / smpl type / image / bbox
     saved_data = OrderedDict()
-    json.dumps(, cls=NumpyArrayEncoder)
     saved_data['demo_type'] = demo_type
     saved_data['smpl_type'] = smpl_type
     # saved_data['image_path'] = osp.abspath(image_path)
