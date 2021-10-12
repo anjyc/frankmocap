@@ -305,6 +305,7 @@ def save_pred_to_pkl(
     print(f"Prediction saved: {pkl_path}")
  
 
+
 def save_pred_to_json(
     args, demo_type, image_path, 
     body_bbox_list, hand_bbox_list, pred_output_list):
